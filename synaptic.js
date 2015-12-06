@@ -58,6 +58,8 @@ function N (index, key) {
     this.key = key; // responds to KEY or activates response
     this.s = []; // strengths
     this.c = map[index].split(""); // connected neurons log
+
+    return this;
 }
 
 N.prototype.init = function(){
@@ -146,6 +148,8 @@ function tick() {
     process.stdin.resume();
     process.stdin.setEncoding('utf8');
     process.stdin.on('data', function(data) {
+          
+        // take input from stdin for now
         input += data;
         process.stdin.pause();
 
@@ -169,6 +173,24 @@ function tick() {
         tick();
         
     });
+}
+
+// World design as a JS Object
+function World (benefit, harm) {
+    // init function
+    
+    this.benefit = benefit;
+    this.harm = harm;
+
+    return this;
+}
+
+World.prototype.stimulate(){
+    // provides input to mind
+}
+
+World.prototype.respond(){
+    // provides feedback
 }
 
 tick();
