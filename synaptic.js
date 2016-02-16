@@ -153,7 +153,12 @@ Mind.prototype.cycle = function(input) {
 }
 
 Mind.prototype.learn = function(response) {
+    // response is a variable from -1 to 1 inclusive
+    //
     // change n_dist per response
+    
+    // This is rather arbitrary, but it looks nice, so we'll go with it
+    n_dist *= 2 / (1 + Math.E ^ (-5 * x)) - 1;
 }
 
 // generate network
@@ -192,16 +197,18 @@ function tick() {
         mind.cycle(input);
         
         // get response from environment
-        // (run world functions simulate() and respond(), with simulate() making the variable and respond() providing the variable
-        // ...
+        world.simulate();
+        response = world.respond();
 
         // change n_dist according to output
-        // mind.learn(response);
+        mind.learn(response);
 
         console.log(mind);
         
     });
 }
+
+/* WORLD MODEL 
 
 // this controls the tick sequences, manages ticks
 var ticker = setInterval(tick, 1000);
@@ -225,10 +232,7 @@ World.prototype.respond = function(){
 
     console.log("Responded");
 }
+*/
 
-// We're implementing a progressive, Iterative Abstraction Leraning (IAL) technique detailed on the ToDo list
-
-tick();
-
-
+// We're implementing a progressive, Iterative Abstraction Learning (IAL) technique detailed on the ToDo list
 
