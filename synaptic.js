@@ -31,7 +31,7 @@ for (i in keys) {
 var threshold = 2, // firing threshold
     pace = 1.3, // learning pace, which 1 being static, nothing learned
     depreciation = 0.8, // how fast individual neurons (and thus the system) loses neurotransmitters
-    variation = 0.05, // neuron firing perturbation
+    variation = 0.25, // neuron firing perturbation
     n_dist = 1.0, // neurontransmitter distribution density, a float around the value of 1
     neuronlist,
     mind;
@@ -98,10 +98,10 @@ function Neuron() {
                     click = this.state * this.s[i] + Math.random() * variation;
                     mind.network[i].on(click);
                 }
-
-                // the neuron is cleared
-                this.clear();
             }
+
+            // clear the neuron activation state
+            this.clear();
 
             // learn for this neuron
             this.learn();
@@ -127,7 +127,7 @@ function Mind() {
             var self = this;
             input.split("").forEach(function(id) {
                 if (id != '\n') {
-                    self.network[parseInt(rkeys[id])].on(0.8); // this 0.8 is ... arbitrary
+                    self.network[parseInt(rkeys[id])].on(0.75); // this 0.75 is ... arbitrary
                 }
             });
 
@@ -141,29 +141,34 @@ function Mind() {
     this.learn = function(response) {
         // response is a variable from -1 to 1 inclusive
         // this function is also super arbitrary, for now
+
         n_dist *= 2 / (1 + Math.pow(Math.E, -5 * response)) - 1;
     };
 
     this.tick = function() {
         
         console.log("Tick...");
+        var self = this;
+
         var input = "";
+
 
         // receive input
         process.stdin.resume();
         process.stdin.setEncoding('utf8');
         process.stdin.on('data', function(data) {
             
-            if (data == '\n') {
-                process.stdin.pause();
-            } else {
-                input += data;
-            }
+            input = data;
 
-            mind.cycle(input);
+            self.cycle(input);
 
-            world.simulate();
-            mind.learn(world.respond());
+            // useful debugging log; don't delete
+            mind.network.forEach(function(neuron) {
+                console.log(neuron.key + " | " + neuron.state);
+            });
+
+            //world.simulate();
+            //self.learn(world.respond());
 
         });
 
@@ -171,7 +176,7 @@ function Mind() {
 
 };
 
-// generate network
+// generate netwiork
 var neuronlist = [];
 for (i = 0; i < scale; i++) {
     neuronlist.push(new Neuron());
