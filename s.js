@@ -8,17 +8,47 @@
  *
  */
 
-var Syn = require("../synaptic.js");
+var Syn = require("./synaptic.js");
 
 // each neuron index associated with its key
 Syn.keys = {
+    0: "w",
+    1: "a",
+    2: "s",
+    3: "d",
+    4: "x" // x marks the spot; the more the x in the next input, the closer it was
 };
 
 // this as array of arrays
 Syn.map = [
+ [1, 0, 1, 0, 0],
+ [0, 1, 0, 1, 0],
+ [1, 0, 1, 0, 0],
+ [0, 1, 0, 1, 0],
+ [1, 1, 1, 1, 1], // these endorphin neurons might not need to be connected to anything, really
 ];
 
 Syn.actions = {
+    "x": function() {
+        mind.learn();
+        console.log("Lesson acknowledged!");
+    },
+    
+    "w": function() {
+        console.log("^");
+    },
+    
+    "a": function() {
+        console.log("<");
+    },
+    
+    "s": function() {
+        console.log(">");
+    },
+ 
+    "d": function() {
+        console.log("v");
+    }
 };
 
 // no debugging messages are needed here...

@@ -1,50 +1,60 @@
-#!/usr/bin/env node
-
 /* Project Synaptic 2.0: General Intelligence Project
+ * NodeJS / JavaScript module version
  * Copyright Linus Lee 2015, All rights reserved.
  *
  * For inquires please contact linus@thelifelongtraveler.com
  *
  */
 
-// each neuron index associated with its key
-var keys = {
-    0: "0",
-    1: "1",
-    2: "f",
-};
-
-var rkeys = {},
-    scale = 0;
-
-for (i in keys) {
-    if (!Object.prototype.hasOwnProperty.call(keys, i)) {
-        continue;
-    }
-
-    rkeys[keys[i]] = i;
-
-    scale += 1;
-};
+var exports = module.exports = {};
 
 // init global varibles
-var threshold = 2, // firing threshold
-    pace = 1.3, // learning pace, which 1 being static, nothing learned
-    depreciation = 0.8, // how fast individual neurons (and thus the system) loses neurotransmitters
-    variation = 0.25, // neuron firing perturbation
-    n_dist = 1.0, // neurontransmitter distribution density, a float around the value of 1
-    neuronlist,
-    mind;
+exports.keys = {};
+exports.rkeys = {};
 
-// define neuron connections as 2D array
-var map = [
-    [0, 1, 1],
-    [1, 0, 1],
-    [0, 0, 0]
+// define neuron connections as 2D array of ints 0 and 1
+// map[n] is the list of neurons the nth neuron can fire to
+exports.map = [
 ];
 
+exports.actions = {
+    // JSON hash, links keys to action functions
+    // this includes 
+};
+
+exports.cycleTimer;
+
+// exports.quiet = true means no output besides neuron fire actions
+exports.quiet = false;
+
+exports.scale = 0;
+exports.cyclesPerResponse = 1;
+exports.threshold = 2, // firing threshold
+exports.decay = 0.8, // how fast individual neurons (and thus the system) loses neurotransmitters
+exports.variation = 0.25, // neuron firing perturbation
+exports.n_dist = 1.0, // neurontransmitter distribution density, a float around the value of 1
+
+// define neuron connections as 2D array of ints 0 and 1
+// map[n] is the list of neurons the nth neuron can fire to
+exports.map = [
+];
+
+exports.generateRKeys = function() {
+
+    for (i in exports.keys) {
+        if (!Object.prototype.hasOwnProperty.call(exports.keys, i)) {
+            continue;
+        }
+
+        exports.rkeys[exports.keys[i]] = i;
+
+        exports.scale += 1;
+    };
+
+}
+
 // Neuron object
-function Neuron() {
+exports.Neuron = function() {
     
     this.state = 0.0;
 
@@ -54,7 +64,7 @@ function Neuron() {
     this.init = function(index, key) {
         this.index = index;
         this.key = key;
-        this.c = map[index];
+        this.c = exports.map[index];
 
         // counting connections
         liveConnections = 0;
@@ -65,12 +75,17 @@ function Neuron() {
         });
 
         // initialize this.s
-        for (n = 0; n < scale; n++) {
+        for (n = 0; n < exports.scale; n++) {
             if (this.c[n]) {
                 this.s.push(parseFloat(1) / liveConnections);
             } else {
                 this.s.push(0.0);
             }
+        }
+
+        // tie neuron output action to neuron
+        if (exports.actions[this.key]) {
+            this.action = exports.actions[this.key];
         }
 
     };
@@ -84,37 +99,51 @@ function Neuron() {
     };
 
     this.learn = function() {
-        for (i = 0; i < scale; i++) {
-            this.s[i] *= n_dist;
+        for (i = 0; i < exports.scale; i++) {
+            this.s[i] *= exports.n_dist;
         }
     };
 
     this.fire = function() {
-        if (this.state >= threshold) {
-            
-            // state * weight added to neuron state
-            for (i = 0; i < scale; i++) {
-                if (this.c[i] == "1") {
-                    click = this.state * this.s[i] + Math.random() * variation;
-                    mind.network[i].on(click);
-                }
-            }
+        if (this.state >= exports.threshold) {
+
+            tempstate = this.state;
 
             // clear the neuron activation state
             this.clear();
 
-            // learn for this neuron
-            this.learn();
+            // state * weight added to neuron state
+            for (i = 0; i < exports.scale; i++) {
+                if (this.c[i] == "1") {
+                    click = tempstate * this.s[i] + Math.random() * exports.variation;
+                    mind.network[i].on(click);
+                }
+
+            }
 
             // output (dev purposes)
-            console.log("Fired: " + this.key);
+            if (!exports.quiet) {
+                console.log(": " + this.key + " =>");
+            }
+
+            if (this.action ) {
+                for (i = 0; i < this.state; i ++) {
+                    this.action();
+                }
+            }
+
+            // clear it one more time, because the action was fired
+            this.clear();
+
+            // learn for this neuron
+            this.learn();
         }
                     
     };
 
 };
 
-function Mind() {
+exports.Mind = function() {
     
     this.init = function(list) {
         this.network = list;
@@ -127,14 +156,16 @@ function Mind() {
             var self = this;
             input.split("").forEach(function(id) {
                 if (id != '\n') {
-                    self.network[parseInt(rkeys[id])].on(0.75); // this 0.75 is ... arbitrary
+                    self.network[parseInt(exports.rkeys[id])].on(0.75); // this 0.75 is ... arbitrary
                 }
             });
-
-            this.network.forEach(function(neuron) {
-                neuron.fire();
-            });
         }
+
+        this.network.forEach(function(neuron) {
+            neuron.fire();
+        });
+
+        exports.n_dist *= exports.decay;
 
     };
 
@@ -142,12 +173,11 @@ function Mind() {
         // response is a variable from -1 to 1 inclusive
         // this function is also super arbitrary, for now
 
-        n_dist *= 2 / (1 + Math.pow(Math.E, -5 * response)) - 1;
+        exports.n_dist *= 2 / (1 + Math.pow(Math.E, -5 * response)) - 1;
     };
 
     this.tick = function() {
         
-        console.log("Tick...");
         var self = this;
 
         var input = "";
@@ -160,13 +190,25 @@ function Mind() {
             
             input = data;
 
+            // this also includes the neuron.fire() actions
             self.cycle(input);
+            exports.cycleCounter = 1;
+            exports.cycleTimer = setInterval(function() {
+                self.cycle();
+            
+                if (!exports.quiet) {
+                    mind.network.forEach(function(neuron) {
+                        console.log(neuron.key + " | " + neuron.state);
+                    });
+                }
 
-            // useful debugging log; don't delete
-            mind.network.forEach(function(neuron) {
-                console.log(neuron.key + " | " + neuron.state);
-            });
+                if (exports.cycleCounter == exports.cyclesPerResponse) {
+                    clearInterval(exports.cycleTimer);
+                }
 
+                exports.cycleCounter ++;
+            }, 800);
+               
             //world.simulate();
             //self.learn(world.respond());
 
@@ -175,18 +217,6 @@ function Mind() {
     };
 
 };
-
-// generate netwiork
-var neuronlist = [];
-for (i = 0; i < scale; i++) {
-    neuronlist.push(new Neuron());
-    neuronlist[i].init(i, keys[i]);
-};
-
-mind = new Mind();
-mind.init(neuronlist);
-
-mind.tick();
 
 /* World design as JS object
  *
