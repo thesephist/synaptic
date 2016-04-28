@@ -1,6 +1,6 @@
 /* Project Synaptic 2.0: General Intelligence Project
  * NodeJS / JavaScript module version
- * Copyright Linus Lee 2015, All rights reserved.
+ * Copyright Linus Lee 2015-2016, All rights reserved.
  *
  * For inquires please contact linus@thelifelongtraveler.com
  *
@@ -14,8 +14,7 @@ exports.rkeys = {};
 
 // define neuron connections as 2D array of ints 0 and 1
 // map[n] is the list of neurons the nth neuron can fire to
-exports.map = [
-];
+exports.map = [];
 
 exports.actions = {
     // JSON hash, links keys to action functions
@@ -147,6 +146,13 @@ exports.Mind = function() {
     
     this.init = function(list) {
         this.network = list;
+        if (exports.key == {}) {
+            console.error("A key-value hash for neurons was note provided!");
+        } else if (exports.map.length == 0) {
+            console.error("An inter-neuron mapping array was not provided!");
+        } else if (exports.rkeys == {}) {
+            console.error("Reverse-lookup key hash was not provided!");
+        }
     };
 
     // set neurons from input on
