@@ -21,6 +21,19 @@ exports.actions = {
     // this includes 
 };
 
+exports.world = {
+    
+    respond: function() {
+        return null;
+    },
+
+    simulate: function() {
+        return null;
+    }
+
+}
+
+
 exports.cycleTimer;
 
 // exports.quiet = true means no output besides neuron fire actions
@@ -29,7 +42,7 @@ exports.quiet = false;
 exports.scale = 0;
 exports.cyclesPerResponse = 1;
 exports.threshold = 2, // firing threshold
-exports.decay = 0.8, // how fast individual neurons (and thus the system) loses neurotransmitters
+exports.decay = 0.95, // how fast individual neurons (and thus the system) loses neurotransmitters
 exports.variation = 0.25, // neuron firing perturbation
 exports.n_dist = 1.0, // neurontransmitter distribution density, a float around the value of 1
 
@@ -177,7 +190,7 @@ exports.Mind = function() {
 
     this.learn = function(response) {
         // response is a variable from -1 to 1 inclusive
-        // this function is also super arbitrary, for now
+        // this function is also super arbitrary, for now, as a logistical curve
 
         exports.n_dist *= 2 / (1 + Math.pow(Math.E, -5 * response)) - 1;
     };
@@ -187,7 +200,6 @@ exports.Mind = function() {
         var self = this;
 
         var input = "";
-
 
         // receive input
         process.stdin.resume();
@@ -200,6 +212,7 @@ exports.Mind = function() {
             self.cycle(input);
             exports.cycleCounter = 1;
             exports.cycleTimer = setInterval(function() {
+            
                 self.cycle();
             
                 if (!exports.quiet) {
@@ -213,23 +226,20 @@ exports.Mind = function() {
                 }
 
                 exports.cycleCounter ++;
+            
             }, 800);
                
-            //world.simulate();
-            //self.learn(world.respond());
+            exports.world.simulate();
+            
+            response = exports.world.respond();
+            if (!exports.quiet) console.log("World response: " + response.toString());
+            self.learn(response);
+
+            if (!exports.quiet) console.log("N DIST: " + exports.n_dist.toString());
 
         });
 
     };
 
 };
-
-/* World design as JS object
- *
- * init: this.benefit: function
- *       this.harm: function
- *
- * simulate: function
- * respond: function
- */
 
