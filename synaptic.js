@@ -48,8 +48,7 @@ exports.n_dist = 1.0, // neurontransmitter distribution density, a float around 
 
 // define neuron connections as 2D array of ints 0 and 1
 // map[n] is the list of neurons the nth neuron can fire to
-exports.map = [
-];
+exports.map = [];
 
 exports.generateRKeys = function() {
 
@@ -192,21 +191,26 @@ exports.Mind = function() {
         // response is a variable from -1 to 1 inclusive
         // this function is also super arbitrary, for now, as a logistical curve
 
+
+        // TODO: Sometimes this code generates NaN as the new neuron.s[i]
+        // needs to be fixed!
         exports.n_dist *= 2 / (1 + Math.pow(Math.E, -5 * response)) - 1;
     };
 
-    this.tick = function() {
+    this.tick = function(string) {
         
+        exports.generateRKeys();
+
         var self = this;
 
-        var input = "";
+        var input = string || "";
 
         // receive input
         process.stdin.resume();
         process.stdin.setEncoding('utf8');
         process.stdin.on('data', function(data) {
             
-            input = data;
+            input += data;
 
             // this also includes the neuron.fire() actions
             self.cycle(input);
@@ -236,6 +240,14 @@ exports.Mind = function() {
             self.learn(response);
 
             if (!exports.quiet) console.log("N DIST: " + exports.n_dist.toString());
+
+            if (!exports.quiet) {
+                console.log("Connection strenghts");
+                self.network.forEach(function(neuron) {
+                    console.log(neuron.s);
+                });
+                
+            }
 
         });
 
