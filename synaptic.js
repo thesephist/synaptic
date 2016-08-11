@@ -24,7 +24,7 @@ exports.actions = {
 exports.world = {
     
     respond: function() {
-        return null;
+        return null; // range -1 to 1, inclusive
     },
 
     simulate: function() {
@@ -155,9 +155,13 @@ exports.Neuron = function() {
 };
 
 exports.Mind = function() {
-    
+  
+    this.inputQueue = "";
+
     this.init = function(list) {
         this.network = list;
+        exports.generateRKeys();
+
         if (exports.key == {}) {
             console.error("A key-value hash for neurons was note provided!");
         } else if (exports.map.length == 0) {
@@ -165,6 +169,32 @@ exports.Mind = function() {
         } else if (exports.rkeys == {}) {
             console.error("Reverse-lookup key hash was not provided!");
         }
+    };
+
+    this.importFrom = function(path) {
+        if (!path) throw "No path was provided for data import!";
+
+        // do stuff...
+    };
+
+    this.export = function(path) {
+        var content = JSON.stringify(this);
+        
+        if (path) {
+            fs.writeFile(path, content, function(err) {
+                if (err) {
+                    console.log(err);
+                } else {
+                    console.log(`Export to ${path} successful!`);
+                }
+            }
+        } else {
+            process.stdout.write(content);
+        }
+    };
+
+    this.setInput = function(data) {
+        this.inputQueue = data; // should it be += ?
     };
 
     // set neurons from input on
@@ -197,13 +227,21 @@ exports.Mind = function() {
         exports.n_dist *= 2 / (1 + Math.pow(Math.E, -5 * response)) - 1;
     };
 
+    this.processCSV = function(data) {
+        var rows = data.split("\n");
+        var pair;
+        
+        rows.forEach(function(row) {
+            pair = row.split(",");
+            this.tick(pair[0], pair[1]);
+        });
+    };
+
     this.tick = function(string) {
         
-        exports.generateRKeys();
-
         var self = this;
 
-        var input = string || "";
+        var input = string || this.inputQueue;
 
         // receive input
         process.stdin.resume();
