@@ -2,7 +2,7 @@
 
 /* Project Synaptic 2.0: General Intelligence Project
  * Main thread build
- * Copyright Linus Lee 2015, All rights reserved.
+ * Copyright Linus Lee 2015-2016, All rights reserved.
  *
  * For inquires please contact linus@thelifelongtraveler.com
  *
@@ -23,19 +23,16 @@ Syn.actions = {
 
 // no debugging messages are needed here...
 Syn.quiet = true;
-
-Syn.generateRKeys();
 Syn.cyclesPerResponse = 3;
 
 // generate netwiork
 var neuronlist = [];
+var mind = new Syn.Mind();
 
 for (i = 0; i < Syn.scale; i++) {
-    neuronlist.push(new Syn.Neuron());
-    neuronlist[i].init(i, Syn.keys[i]);
+    neuronlist.push(new Syn.Neuron(i, Syn.keys[i], mind));
 };
 
-mind = new Syn.Mind();
 mind.init(neuronlist);
 
 mind.tick();

@@ -13,6 +13,9 @@ var Syn = require("./synaptic.js");
 var dx, dy, ds;
 dx = dy = ds = 0;
 
+var mind = new Syn.Mind();
+mind.motion = "";
+
 // each neuron index associated with its key
 Syn.keys = {
     0: "w",
@@ -24,71 +27,75 @@ Syn.keys = {
 
 // this as array of arrays
 Syn.map = [
- [1, 0, 1, 0, 0],
- [0, 1, 0, 1, 0],
- [1, 0, 1, 0, 0],
- [0, 1, 0, 1, 0],
- [1, 1, 1, 1, 1], // these endorphin neurons might not need to be connected to anything, really
+    [1, 0, 1, 0, 0],
+    [0, 1, 0, 1, 0],
+    [1, 0, 1, 0, 0],
+    [0, 1, 0, 1, 0],
+    [0, 0, 0, 0, 1]
 ];
 
 Syn.actions = {
     "x": function() {
-        mind.learn();
+        mind.learn(Syn.world.respond());
         console.log("Lesson acknowledged!");
     },
     
     "w": function() {
-        dy += 1;
+        dy ++;
         console.log("^");
+        mind.motion += "^";
     },
     
     "a": function() {
-        dx -= 1;
+        dx --;
         console.log("<");
+        mind.motion += "<";
     },
     
     "s": function() {
-        dy -= 1;
+        dy --;
         console.log("v");
+        mind.motion += "v";
     },
  
     "d": function() {
-        dx += 1;
+        dx ++;
         console.log(">");
+        mind.motion += ">";
     }
 };
 
 Syn.world.respond = function() {
     // executed after the input has been processed, so has nonzero dx, dy
     ds = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
-    if (ds > 20) ds = 20;
+    if (ds > 6) ds = 6;
 
     console.log(dx, dy, ds);
     
     dx = dy = 0;
 
     // returns 0 <= result <= 1;
-    return ((20 - ds) / 10 - 1);
+    return ((6 - ds) / 3 - 1);
 }
 
-// no debugging messages are needed here...
+// verbose for now
 Syn.quiet = false;
-
-Syn.generateRKeys();
 Syn.cyclesPerResponse = 3;
 
-// generate netwiork
+// generate network
 var neuronlist = [];
 
-for (i = 0; i < Syn.scale; i++) {
-    neuronlist.push(new Syn.Neuron());
-    neuronlist[i].init(i, Syn.keys[i]);
-};
+for (i = 0; i < Syn.map.length; i ++) {
+    neuronlist.push(new Syn.Neuron(i, Syn.keys[i], mind));
+}
 
-mind = new Syn.Mind();
 mind.init(neuronlist);
 
-mind.tick();
+// for iterators
+var module;
+module.exports = exports = {
+    Syn: Syn,
+    mind: mind
+}
 
-
-
+ mind.tick();
