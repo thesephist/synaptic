@@ -9,7 +9,7 @@
 var exports = module.exports = {};
 
 // init global varibles
-exports.keys = {};
+exports.keys = {}; // be careful here -- the learning neuron / feedback loop neuron should never feedback loop to itself
 exports.rkeys = {};
 
 // define neuron connections as 2D array of ints 0 and 1
@@ -220,7 +220,9 @@ exports.Mind = function(list) {
         // when in reality an equilibrum should be maintained in the long run.
 
         if (response === undefined) throw "Response undefined!";
-        exports.n_dist *= 1 / (1 + Math.pow(Math.E, -5 * response));
+
+        var delta = exports.n_dist * (1 - exports.decay);
+        exports.n_dist += delta * (response + 1);
     };
 
     this.processCSV = function(data) {
